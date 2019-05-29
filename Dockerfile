@@ -3,9 +3,21 @@ FROM python:3.7-alpine
 MAINTAINER apollovy "apollovy@gmail.com"
 
 WORKDIR /app
-ADD . /app/
 
+RUN apk add --no-cache mariadb-connector-c-dev ;\
+    apk add --no-cache --virtual .build-deps \
+        build-base \
+        mariadb-dev
+
+COPY run.py run.py
+COPY requirements.txt requirements.txt
+COPY requirements requirements
 RUN pip install -r requirements.txt
+
+RUN apk del .build-deps
+
+
+COPY ready_for_sky ./
 
 ENV PYTHONPATH ready_for_sky
 
