@@ -3,6 +3,8 @@
 
 import os
 # noinspection PyPackageRequirements
+import typing
+
 from Crypto.PublicKey import RSA
 import tornado.web
 
@@ -22,7 +24,7 @@ class MainHandler(tornado.web.RequestHandler):
 
 
 # noinspection PyPep8Naming
-def generate_RSA():
+def generate_RSA() -> typing.Tuple[bytes, bytes]:
     """
     Generate an RSA keypair with an exponent of 65537 in PEM format
     Return private key and public key
@@ -36,28 +38,44 @@ def generate_RSA():
     return private_key, public_key
 
 
-def create_public_key(connection, user_name: str):
+def read_or_create_public_key(connection, user_name: str) -> bytes:
+    maybe_key = read_public_key(connection, user_name)
+
+    if maybe_key is None:
+        key = create_public_key(connection, user_name)
+    else:
+        key = maybe_key
+
+    return key
+
+
+def create_public_key(connection, user_name: str) -> bytes:
     cursor = connection.cursor()
     _, public_key = generate_RSA()
     sql = insert_sql()
-    result = cursor.execute(sql, (user_name, public_key))
+    cursor.execute(sql, (user_name, public_key))
     connection.commit()
 
-    return result
+    return public_key
 
 
-def read_public_key(connection, user_name: str):
+def read_public_key(connection, user_name: str) -> typing.Optional[bytes]:
     cursor = connection.cursor()
     sql = select_sql()
     cursor.execute(sql, (user_name, ))
-    result = cursor.fetchone()
+    maybe_result = cursor.fetchone()
+
+    if maybe_result is not None:
+        result = maybe_result[0].encode()
+    else:
+        result = maybe_result
 
     return result
 
 
-def select_sql():
+def select_sql() -> str:
     return 'SELECT open_rsa_key FROM open_rsa_keys WHERE user_name=%s'
 
 
-def insert_sql():
+def insert_sql() -> str:
     return 'INSERT INTO open_rsa_keys VALUES (%s, %s)'
