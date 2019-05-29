@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
-
-
 import os
-# noinspection PyPackageRequirements
 import typing
 
+# noinspection PyPackageRequirements
 import MySQLdb
 import tornado.web
+# noinspection PyPackageRequirements
 from Crypto.PublicKey import RSA
 
 DB_SERVER_HOST = os.environ['DB_SERVER_HOST']
@@ -23,8 +21,8 @@ class MainHandler(tornado.web.RequestHandler):
             user='root',
         )
 
-    def get(self, user_name):
-        key = read_or_create_public_key(self.connection, user_name)
+    async def get(self, user_name):
+        key = await read_or_create_public_key(self.connection, user_name)
         self.write(key)
 
 
@@ -43,18 +41,18 @@ def generate_RSA() -> typing.Tuple[bytes, bytes]:
     return private_key, public_key
 
 
-def read_or_create_public_key(connection, user_name: str) -> bytes:
-    maybe_key = read_public_key(connection, user_name)
+async def read_or_create_public_key(connection, user_name: str) -> bytes:
+    maybe_key = await read_public_key(connection, user_name)
 
     if maybe_key is None:
-        key = create_public_key(connection, user_name)
+        key = await create_public_key(connection, user_name)
     else:
         key = maybe_key
 
     return key
 
 
-def create_public_key(connection, user_name: str) -> bytes:
+async def create_public_key(connection, user_name: str) -> bytes:
     cursor = connection.cursor()
     _, public_key = generate_RSA()
     sql = insert_sql()
@@ -64,10 +62,10 @@ def create_public_key(connection, user_name: str) -> bytes:
     return public_key
 
 
-def read_public_key(connection, user_name: str) -> typing.Optional[bytes]:
+async def read_public_key(connection, user_name: str) -> typing.Optional[bytes]:
     cursor = connection.cursor()
     sql = select_sql()
-    cursor.execute(sql, (user_name, ))
+    cursor.execute(sql, (user_name,))
     maybe_result = cursor.fetchone()
 
     if maybe_result is not None:

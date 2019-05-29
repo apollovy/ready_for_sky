@@ -19,7 +19,7 @@ RUN apk del .build-deps
 
 COPY ready_for_sky ./
 
-ENV PYTHONPATH ready_for_sky
+ENV PYTHONPATH .:ready_for_sky
 
 CMD python run.py
 
