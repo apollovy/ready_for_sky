@@ -1,8 +1,6 @@
 import os
 
 # noinspection PyPackageRequirements
-import random
-
 import pytest
 # noinspection PyPackageRequirements
 from MySQLdb import connect
