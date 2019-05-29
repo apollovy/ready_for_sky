@@ -5,22 +5,27 @@ import os
 # noinspection PyPackageRequirements
 import typing
 
-from Crypto.PublicKey import RSA
+import MySQLdb
 import tornado.web
-
-
-from MySQLdb import connect
-
+from Crypto.PublicKey import RSA
 
 DB_SERVER_HOST = os.environ['DB_SERVER_HOST']
 
 
 # noinspection PyAbstractClass
 class MainHandler(tornado.web.RequestHandler):
+    connection: MySQLdb.Connection
 
-    # @tornado.web.authenticated
-    def get(self):
-        self.render('index.html')
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.connection = MySQLdb.connect(
+            host=DB_SERVER_HOST, passwd='example', db='ready_for_sky',
+            user='root',
+        )
+
+    def get(self, user_name):
+        key = read_or_create_public_key(self.connection, user_name)
+        self.write(key)
 
 
 # noinspection PyPep8Naming
