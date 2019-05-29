@@ -26,4 +26,5 @@ CMD python run.py
 FROM prod AS test
 
 RUN pip install -r requirements/test.txt
+COPY tests tests
 CMD pytest ready_for_sky tests
