@@ -12,6 +12,7 @@ from MySQLdb import connect
 
 DB_SERVER_HOST = os.environ['DB_SERVER_HOST']
 
+
 # noinspection PyAbstractClass
 class MainHandler(tornado.web.RequestHandler):
 
@@ -35,13 +36,9 @@ def generate_RSA():
     return private_key, public_key
 
 
-def create_public_key(user_name: str):
-    connection = connect(
-        host=DB_SERVER_HOST, passwd='example', db='ready_for_sky', user='root',
-    )
-    assert connection.open
+def create_public_key(connection, user_name: str):
     cursor = connection.cursor()
-    private_key, public_key = generate_RSA()
+    _, public_key = generate_RSA()
     sql = insert_sql()
     result = cursor.execute(sql, (user_name, public_key))
     connection.commit()
@@ -49,13 +46,18 @@ def create_public_key(user_name: str):
     return result
 
 
+def read_public_key(connection, user_name: str):
+    cursor = connection.cursor()
+    sql = select_sql()
+    cursor.execute(sql, (user_name, ))
+    result = cursor.fetchone()
+
+    return result
+
+
 def select_sql():
-    return 'SELECT * FROM open_rsa_keys WHERE user_name=%s'
+    return 'SELECT open_rsa_key FROM open_rsa_keys WHERE user_name=%s'
 
 
 def insert_sql():
     return 'INSERT INTO open_rsa_keys VALUES (%s, %s)'
-
-
-def read_public_key(user_name: str):
-    raise NotImplementedError
