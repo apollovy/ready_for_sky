@@ -54,22 +54,23 @@ def user_name(request):
 
 
 @pytest.fixture
-async def public_key_created(mysql_connection, user_name):
-    result = await base.create_public_key(mysql_connection, user_name)
+def public_key_created(mysql_connection, user_name):
+    result = base.create_public_key(mysql_connection, user_name)
 
     return result
 
 
 @pytest.fixture
-async def public_key_read(mysql_connection, user_name):
-    result = await base.read_public_key(mysql_connection, user_name)
+def public_key_read(mysql_connection, user_name):
+    result = base.read_public_key(mysql_connection, user_name)
 
     return result
 
 
 @pytest.fixture
-async def public_key_read_or_created(mysql_connection, user_name):
-    key = await base.read_or_create_public_key(mysql_connection, user_name)
+def public_key_read_or_created(mysql_connection, user_name):
+    base.CONNECTION = mysql_connection
+    key = base.read_or_create_public_key(user_name)
 
     return key
 
@@ -82,16 +83,14 @@ def test_public_key_creates_successfully(table_cleared, public_key_created):
     assert public_key_created
 
 
-@pytest.mark.asyncio
-async def test_public_key_reads(
+def test_public_key_reads(
         table_cleared, generate_rsa_patched,
         mysql_connection, public_key_created, public_key_read,
 ):
     assert public_key_read == PUBLIC_KEY
 
 
-@pytest.mark.asyncio
-async def test_public_key_reads_or_creates(
+def test_public_key_reads_or_creates(
         table_cleared, generate_rsa_patched,
         mysql_connection, public_key_read_or_created,
 ):

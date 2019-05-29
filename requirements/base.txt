@@ -1,3 +1,3 @@
 mysqlclient
 pycryptodome
-tornado
+tornado>=6.0.2
