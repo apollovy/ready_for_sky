@@ -4,7 +4,9 @@ import os
 import pytest
 # noinspection PyPackageRequirements
 from MySQLdb import connect
+from tornado import testing
 
+import run
 from handlers import base
 
 PRIVATE_KEY = b'''i'm so private'''
@@ -42,8 +44,13 @@ def table_cleared(mysql_connection):
 
 
 @pytest.fixture
-def user_name():
-    return 'barsuk'
+def user_name(request):
+    name = 'barsuk'
+
+    if request.cls:
+        request.cls.user_name = name
+
+    return user_name
 
 
 @pytest.fixture
@@ -93,3 +100,16 @@ def test_generated_keys_are_bytes():
     private, public = base.generate_RSA()
     assert isinstance(private, bytes)
     assert isinstance(public, bytes)
+
+
+class TestMainHandler(testing.AsyncHTTPTestCase):
+    user_name: str
+
+    def get_app(self):
+        return run.TornadoApplication()
+
+    @pytest.mark.usefixtures('generate_rsa_patched', 'user_name')
+    def test_user(self):
+        response = self.fetch('/{}'.format(self.user_name))
+        assert response.code == 200
+        assert response.body == PUBLIC_KEY
