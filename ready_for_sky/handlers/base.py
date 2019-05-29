@@ -24,6 +24,9 @@ def initializer(*args, **kwargs):
     )
 
 
+# TODO: it's also a good idea to add a lock when the key is generated
+#  to prevent IntegrityErrors and users getting 500s when simultaneously tried
+#  to fetch same user's key.
 # noinspection PyAbstractClass
 class MainHandler(tornado.web.RequestHandler):
     executor = futures.ProcessPoolExecutor(initializer=initializer)
