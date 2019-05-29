@@ -1,4 +1,4 @@
-FROM python:3.7-alpine
+FROM python:3.7-alpine AS prod
 
 MAINTAINER apollovy "apollovy@gmail.com"
 
@@ -22,3 +22,8 @@ COPY ready_for_sky ./
 ENV PYTHONPATH ready_for_sky
 
 CMD python run.py
+
+FROM prod AS test
+
+RUN pip install -r requirements/test.txt
+CMD pytest ready_for_sky tests

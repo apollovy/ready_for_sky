@@ -1,7 +1,9 @@
-version: '2'
+version: '3.6'
 services:
   tornado:
-    build: .
+    build:
+      context: .
+      target: prod
     ports:
       - "8000:8000"
     volumes:
